@@ -42,8 +42,9 @@ entity test_env is
 end test_env;
 
 architecture Behavioral of test_env is
-signal CNT : std_logic_vector (15 downto 0) := (others => '0');
+signal CNT : std_logic_vector (7 downto 0) := (others => '0');
 signal en : STD_LOGIC := '0';
+signal decoded: std_logic_vector(7 downto 0) := (others => '0');
 component MPG
     port (enable : out STD_LOGIC;
            btn : in STD_LOGIC;
@@ -69,5 +70,22 @@ if rising_edge(CLK) then
     end if;
 end if;
 end process;
-led <= cnt;
+
+process(cnt)
+begin
+case cnt is
+ when "000" => decoded <= "00000000";
+ when "001" => decoded <= "00000010";
+ when "010" => decoded <= "00000100";
+ when "011" => decoded <= "00001000";
+ when "100" => decoded <= "00010000";
+ when "101" => decoded <= "00100000";
+ when "110" => decoded <= "01000000";
+ when others => decoded <= "10000000";
+end case;
+end process;
+
+
+
+led <= "00000000" & decoded;
 end Behavioral;
