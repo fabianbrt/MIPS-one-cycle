@@ -15,22 +15,6 @@ end test_env;
 architecture Behavioral of test_env is
 
 
-signal CNT : std_logic_vector (1 downto 0) := "00";
-signal en : STD_LOGIC := '0';
-
-
-signal A, B : std_logic_vector(31 downto 0); 
-signal ALU_OUT : std_logic_vector(31 downto 0);
-signal ssd_digits: std_logic_vector(31 downto 0) := (others => '0'); 
-
-
-signal zero_flag : std_logic;
-
-
-signal ssd_an : std_logic_vector(7 downto 0);
-signal ssd_cat : std_logic_vector(6 downto 0);
-
-
 component MPG
     port (enable : out STD_LOGIC;
            btn : in STD_LOGIC;
@@ -45,54 +29,88 @@ component SSD
            an : out STD_LOGIC_VECTOR (7 downto 0));
 end component;
 
+component IFETCH
+ Port ( clk : in STD_LOGIC;
+           rst : in STD_LOGIC;
+           en : in std_logic;
+           jumpAddr : in STD_LOGIC_VECTOR (31 downto 0);
+           branchAddr : in STD_LOGIC_VECTOR (31 downto 0);
+           swJmp : in STD_LOGIC;
+           swBr : in STD_LOGIC;
+           Instruction : out STD_LOGIC_VECTOR(31 downto 0);
+           PCinc : out STD_LOGIC_VECTOR(31 downto 0));
+end component;
+
+component UC is
+    Port ( op_code : in STD_LOGIC_VECTOR (5 downto 0);
+           RegDst : out STD_LOGIC;
+           ExtOp : out STD_LOGIC;
+           ALUSrc : out STD_LOGIC;
+           Branch : out STD_LOGIC;
+           Jump : out STD_LOGIC;
+           ALUOp : out STD_LOGIC_VECTOR (1 downto 0);
+           MemWrite : out STD_LOGIC;
+           MemtoReg : out STD_LOGIC;
+           RegWrite : out STD_LOGIC);
+end component;
+
+component ID is
+   Port(clk: in std_logic;
+    Instruction: in std_logic_vector(31 downto 0);
+    WD: in std_logic_vector(31 downto 0);
+    btn_en: in std_logic;
+    RegWrite: in std_logic;
+    RegDst: in std_logic;
+    ExtOp: in std_logic;
+    RD1: out std_logic_vector(31 downto 0);
+    RD2: out std_logic_vector(31 downto 0);
+    Ext_Imm: out std_logic_vector(31 downto 0);
+    func: out std_logic_vector(31 downto 0);
+    sa: out std_logic_vector(31 downto 0)
+    );
+end component;
+
+
+signal Instruction : std_logic_vector(31 downto 0) := (others => '0');
+signal PCinc : std_logic_vector(31 downto 0) := (others => '0');
+signal digits: std_logic_vector(31 downto 0) := (others => '0');
+signal en, rst: std_logic;
+signal sum : std_logic_vector(31 downto 0) := (others => '0');
+signal rd1:  std_logic_vector(31 downto 0) := (others => '0');
+signal rd2:  std_logic_vector(31 downto 0) := (others => '0');
+signal RegDst: STD_LOGIC;
+signal ExtOp :  STD_LOGIC;
+signal ALUSrc :STD_LOGIC;
+signal Branch :  STD_LOGIC;
+signal Jump :  STD_LOGIC;
+signal ALUOp : STD_LOGIC_VECTOR (2 downto 0) := (others => '0');
+signal MemWrite :  STD_LOGIC;
+signal  MemtoReg :  STD_LOGIC;
+signal RegWrite :  STD_LOGIC;
+signal Ext_Imm: std_logic_vector(31 downto 0) := (others => '0');
+signal func: std_logic_vector(31 downto 0) := (others => '0');
+signal sa: std_logic_vector(31 downto 0) := (others => '0');
 begin
 
+monopulse1: MPG port map(enable => en, btn => btn(0), clk => clk);
+monopulse2: MPG port map(enable => rst, btn => btn(1), clk => clk);
 
-e: MPG port map (
-    enable => en,
-    btn => btn(0),
-    clk => clk
-);
+instr_fetch: IFETCH port map(clk, rst, en, x"0000FFFB", x"00000010", sw(0), sw(1), Instruction, PCinc);
+instr_ID: ID port map(clk, Instruction, sum, en,  RegWrite, RegDst, ExtOp, rd1, rd2, Ext_imm, func, sa);
+instr_UC: UC port map(Instruction(31 downto 26), RegDst, ExtOp, ALUSrc, Branch, Jump, ALUOp, MemWrite, MemtoReg, RegWrite);
 
+sum <= rd1 + rd2;
 
-process(clk)
-begin
-    if rising_edge(clk) then
-        CNT <= CNT + 1; 
-    end if;
-end process;
+with sw(7 downto 5) select
+ digits <= Instruction when "000",
+           PCinc when "001",
+           rd1 when "010",
+           rd2 when "011",
+           sum when "100",
+           Ext_imm when "101",
+           func when "110",
+           sa when "111",
+           (others => 'X') when others;
 
-
-A <= (others => '0') & sw(3 downto 0);  
-B <= (others => '0') & sw(7 downto 4);  
-
-
-process(CNT, A, B)
-begin
-    case CNT is
-        when "00" => ALU_OUT <= A + B;         
-        when "01" => ALU_OUT <= A - B;         
-        when "10" => ALU_OUT <= A sll 2;       
-        when others => ALU_OUT <= A srl 2;     
-    end case;
-end process;
-
-
-zero_flag <= '1' when ALU_OUT = X"00000000" else '0';
-led(7) <= zero_flag; 
-led(6 downto 0) <= (others => '0'); 
-
-
-ssd_digits <= ALU_OUT;
-
-display: SSD port map (
-    digits => ssd_digits,
-    clk => clk,
-    cat => ssd_cat,
-    an => ssd_an
-);
-
-an <= ssd_an;
-cat <= ssd_cat;
-
+display: SSD port map(digits => digits, clk => clk, cat => cat, an => an);
 end Behavioral;
