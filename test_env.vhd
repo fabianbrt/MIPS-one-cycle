@@ -70,12 +70,38 @@ component ID is
     );
 end component;
 
+component EX is
+    Port ( RD1 : in STD_LOGIC_VECTOR (31 downto 0);
+           RD2 : in STD_LOGIC_VECTOR (31 downto 0);
+           Ext_Imm : in STD_LOGIC_VECTOR (31 downto 0);
+           sa : in STD_LOGIC_VECTOR (5 downto 0);
+           func : in STD_LOGIC_VECTOR (5 downto 0);
+           PCnext : in STD_LOGIC_VECTOR (31 downto 0);
+           AluSrc : in STD_LOGIC;
+           AluOp : in  STD_LOGIC_VECTOR (2 downto 0);
+           Zero : out STD_LOGIC;
+           AluRes : out STD_LOGIC_VECTOR (31 downto 0);
+           BranchAddr : out STD_LOGIC_VECTOR (31 downto 0));
+end component EX;
+
+component MEM is
+    Port ( clk: in STD_LOGIC;
+           ALUresIN : in STD_LOGIC_VECTOR (31 downto 0);
+           RD2 : in STD_LOGIC_VECTOR (31 downto 0);
+           MemWrite : in STD_LOGIC;
+           en : in STD_LOGIC;
+           MemData : out STD_LOGIC_VECTOR (31 downto 0);
+           ALUresOUT : out STD_LOGIC_VECTOR (31 downto 0);
+           isPalindrome: out STD_LOGIC_VECTOR(31 downto 0));
+end component MEM;
+
+
 
 signal Instruction : std_logic_vector(31 downto 0) := (others => '0');
 signal PCinc : std_logic_vector(31 downto 0) := (others => '0');
 signal digits: std_logic_vector(31 downto 0) := (others => '0');
 signal en, rst: std_logic;
-signal sum : std_logic_vector(31 downto 0) := (others => '0');
+signal WriteData : std_logic_vector(31 downto 0) := (others => '0');
 signal rd1:  std_logic_vector(31 downto 0) := (others => '0');
 signal rd2:  std_logic_vector(31 downto 0) := (others => '0');
 signal RegDst: STD_LOGIC;
@@ -87,29 +113,44 @@ signal ALUOp : STD_LOGIC_VECTOR (2 downto 0) := (others => '0');
 signal MemWrite :  STD_LOGIC;
 signal  MemtoReg :  STD_LOGIC;
 signal RegWrite :  STD_LOGIC;
+signal Zero :  STD_LOGIC;
+signal PCsrc :  STD_LOGIC;
 signal Ext_Imm: std_logic_vector(31 downto 0) := (others => '0');
 signal func: std_logic_vector(31 downto 0) := (others => '0');
 signal sa: std_logic_vector(31 downto 0) := (others => '0');
+signal BranchAddr: std_logic_vector(31 downto 0) := (others => '0');
+signal JumpAddr: std_logic_vector(31 downto 0) := (others => '0');
+signal ALUresIN: std_logic_vector(31 downto 0) := (others => '0');
+signal ALUresOUT: std_logic_vector(31 downto 0) := (others => '0');
+signal MemData: std_logic_vector(31 downto 0) := (others => '0');
+signal isPali: std_logic_vector(31 downto 0) := (others => '0');
+
+
 begin
 
 monopulse1: MPG port map(enable => en, btn => btn(0), clk => clk);
 monopulse2: MPG port map(enable => rst, btn => btn(1), clk => clk);
 
-instr_fetch: IFETCH port map(clk, rst, en, x"0000FFFB", x"00000010", sw(0), sw(1), Instruction, PCinc);
-instr_ID: ID port map(clk, Instruction, sum, en,  RegWrite, RegDst, ExtOp, rd1, rd2, Ext_imm, func, sa);
+instr_fetch: IFETCH port map(clk, rst, en, JumpAddr, BranchAddr, Jump, PCsrc, Instruction, PCinc);
+instr_ID: ID port map(clk, Instruction, WriteData, en,  RegWrite, RegDst, ExtOp, rd1, rd2, Ext_imm, func, sa);
 instr_UC: UC port map(Instruction(31 downto 26), RegDst, ExtOp, ALUSrc, Branch, Jump, ALUOp, MemWrite, MemtoReg, RegWrite);
+instr_EX: EX port map(RD1, RD2, Ext_imm, sa, func, PCinc, ALUsrc, ALUop, Zero, ALUresIN, BranchAddr); 
+instr_MEM: MEM port map(clk, ALUresIN, RD2, MemWrite, en, MemData, ALUresOUT, isPali); 
 
-sum <= rd1 + rd2;
+WriteData <= MemData when MemToReg = '1' else ALUresOUT;
+PCsrc <= Branch and Zero;
+JumpAddr <= PCinc(31 downto 28) & Instruction(25 downto 0) & "00";
 
-with sw(7 downto 5) select
- digits <= Instruction when "000",
-           PCinc when "001",
-           rd1 when "010",
-           rd2 when "011",
-           sum when "100",
-           Ext_imm when "101",
-           func when "110",
-           sa when "111",
+with sw(8 downto 5) select
+ digits <= Instruction when "0000",
+           PCinc when "0001",
+           rd1 when "0010",
+           rd2 when "0011",
+           WriteData when "0100",
+           Ext_imm when "0101",
+           ALUresIN when "0110",
+           MemData when "0111",
+           isPali when "1000",
            (others => 'X') when others;
 
 display: SSD port map(digits => digits, clk => clk, cat => cat, an => an);
