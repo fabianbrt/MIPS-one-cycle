@@ -69,5 +69,5 @@ end process;
 
 MemData <= ram(to_integer(unsigned(ALUresIN(31 downto 2))));
 ALUresOUt <= ALUresIN;
-isPalindrome <= ram(to_integer(unsigned(ram(0) + 1))); -- PALINDROME CHECK
+isPalindrome <= ram(to_integer(unsigned(ram(0) + 1))); -- PALINDROME CHECK,  ram(6)?
 end Behavioral;
