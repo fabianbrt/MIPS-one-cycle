@@ -63,6 +63,7 @@ begin
         case AluOP is
             when "000" => 
                 case func is
+                    -- maybe ADD?
                     when "000010" => ALUCtrl <= "010"; --SRL  
                     when "100010" => ALUCtrl <= "001"; --SUB
                     when others => ALUCtrl <= (others => 'X');
@@ -87,7 +88,7 @@ variable shift_amt: integer;
 end process;
 
 --Branch Address
-BranchAddr <= std_logic_vector(unsigned(PCnext) + unsigned(Ext_Imm(29 downto 0) & "00"));
+BranchAddr <= std_logic_vector(unsigned(PCnext) + unsigned(Ext_Imm(29 downto 0) & "00")); -- signed for ext_imm + sll 2?
 
 ALUres <= result;
 
