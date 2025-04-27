@@ -73,13 +73,12 @@ process(clk, rst)
     if rst = '1' then
         PC <= (others => '0');
     elsif rising_edge(clk) and en = '1' then
-        if PCsrc = '1' then
-            PC <= branchAddr;
-        elsif Jump = '1' then
+         if Jump = '1' then
             PC <= jumpAddr;
+        elsif PCsrc = '1' then
+            PC <= branchAddr;
         else
             PC <= PC + 4;
-        end if;
     end if;
 end process;
 
