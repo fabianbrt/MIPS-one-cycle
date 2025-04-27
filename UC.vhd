@@ -74,7 +74,7 @@ process(op_code)
             RegWrite <= '1';
             ALUOp <= "001";
         when "000101" =>
-            ALUSrc <= '1';
+             ALUSrc <= '0'; -- ALUsrc <= '1' incorrect => has to compare two registers
             Branch <= '1';
             ALUOp <= "010";
         when "101011" =>
