@@ -9,7 +9,7 @@ entity test_env is
         sw : in STD_LOGIC_VECTOR (4 downto 0); 
         an : out STD_LOGIC_VECTOR (7 downto 0);
         cat : out STD_LOGIC_VECTOR (6 downto 0);
-        led : out STD_LOGIC_VECTOR (7 downto 0)); 
+        led : out STD_LOGIC_VECTOR (8 downto 0)); 
 end test_env;
 
 architecture Behavioral of test_env is
@@ -163,5 +163,7 @@ with sw(4 downto 0) select
            (others => 'X') when others;
 
 --display: SSD port map(digits => digits, clk => clk, cat => cat, an => an);
+led <= Zero & Jump & BranchEQ & BranchNEQ & MemWrite & RegWrite & MemtoReg & ALUSrc & RegDst;
+
 display: SSD_pali port map(clk => clk, palindrome => isPali ,cat => cat, an => an);
 end Behavioral;
