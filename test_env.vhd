@@ -6,7 +6,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity test_env is
   Port (clk : in STD_LOGIC;
         btn : in STD_LOGIC_VECTOR (4 downto 0);
-        sw : in STD_LOGIC_VECTOR (7 downto 0); 
+        sw : in STD_LOGIC_VECTOR (4 downto 0); 
         an : out STD_LOGIC_VECTOR (7 downto 0);
         cat : out STD_LOGIC_VECTOR (6 downto 0);
         led : out STD_LOGIC_VECTOR (7 downto 0)); 
@@ -29,6 +29,13 @@ component SSD
            an : out STD_LOGIC_VECTOR (7 downto 0));
 end component;
 
+component SSD_pali
+    Port ( clk : in STD_LOGIC;
+           palindrome : in STD_LOGIC_VECTOR (31 downto 0);
+           cat : out STD_LOGIC_VECTOR (6 downto 0);
+           an : out STD_LOGIC_VECTOR (7 downto 0));
+end component;
+
 component IFETCH
  Port ( clk : in STD_LOGIC;
            rst : in STD_LOGIC;
@@ -46,7 +53,8 @@ component UC is
            RegDst : out STD_LOGIC;
            ExtOp : out STD_LOGIC;
            ALUSrc : out STD_LOGIC;
-           Branch : out STD_LOGIC;
+           BranchEQ : out STD_LOGIC;
+           BranchNEQ : out STD_LOGIC;
            Jump : out STD_LOGIC;
            ALUOp : out STD_LOGIC_VECTOR (1 downto 0);
            MemWrite : out STD_LOGIC;
@@ -107,7 +115,8 @@ signal rd2:  std_logic_vector(31 downto 0) := (others => '0');
 signal RegDst: STD_LOGIC;
 signal ExtOp :  STD_LOGIC;
 signal ALUSrc :STD_LOGIC;
-signal Branch :  STD_LOGIC;
+signal BranchEQ :  STD_LOGIC;
+signal BranchNEQ :  STD_LOGIC;
 signal Jump :  STD_LOGIC;
 signal ALUOp : STD_LOGIC_VECTOR (2 downto 0) := (others => '0');
 signal MemWrite :  STD_LOGIC;
@@ -116,8 +125,8 @@ signal RegWrite :  STD_LOGIC;
 signal Zero :  STD_LOGIC;
 signal PCsrc :  STD_LOGIC;
 signal Ext_Imm: std_logic_vector(31 downto 0) := (others => '0');
-signal func: std_logic_vector(31 downto 0) := (others => '0');
-signal sa: std_logic_vector(31 downto 0) := (others => '0');
+signal func: std_logic_vector(5 downto 0) := (others => '0');
+signal sa: std_logic_vector(4 downto 0) := (others => '0');
 signal BranchAddr: std_logic_vector(31 downto 0) := (others => '0');
 signal JumpAddr: std_logic_vector(31 downto 0) := (others => '0');
 signal ALUresIN: std_logic_vector(31 downto 0) := (others => '0');
@@ -133,25 +142,26 @@ monopulse2: MPG port map(enable => rst, btn => btn(1), clk => clk);
 
 instr_fetch: IFETCH port map(clk, rst, en, JumpAddr, BranchAddr, Jump, PCsrc, Instruction, PCinc);
 instr_ID: ID port map(clk, Instruction, WriteData, en,  RegWrite, RegDst, ExtOp, rd1, rd2, Ext_imm, func, sa);
-instr_UC: UC port map(Instruction(31 downto 26), RegDst, ExtOp, ALUSrc, Branch, Jump, ALUOp, MemWrite, MemtoReg, RegWrite);
+instr_UC: UC port map(Instruction(31 downto 26), RegDst, ExtOp, ALUSrc, BranchEQ, BranchNEQ, Jump, ALUOp, MemWrite, MemtoReg, RegWrite);
 instr_EX: EX port map(RD1, RD2, Ext_imm, sa, func, PCinc, ALUsrc, ALUop, Zero, ALUresIN, BranchAddr); 
 instr_MEM: MEM port map(clk, ALUresIN, RD2, MemWrite, en, MemData, ALUresOUT, isPali); 
 
 WriteData <= MemData when MemToReg = '1' else ALUresOUT;
-PCsrc <= Branch and Zero;
+PCsrc <= (BranchEQ and Zero) or (BranchNEQ and not Zero);
 JumpAddr <= PCinc(31 downto 28) & Instruction(25 downto 0) & "00";
 
-with sw(8 downto 5) select
- digits <= Instruction when "0000",
-           PCinc when "0001",
-           rd1 when "0010",
-           rd2 when "0011",
-           WriteData when "0100",
-           Ext_imm when "0101",
-           ALUresIN when "0110",
-           MemData when "0111",
-           isPali when "1000",
+with sw(4 downto 0) select
+ digits <= Instruction when "00000",
+           PCinc when "00001",
+           rd1 when "00010",
+           rd2 when "00011",
+           WriteData when "00100",
+           Ext_imm when "00101",
+           ALUresIN when "00110",
+           MemData when "00111",
+           isPali when "01000",
            (others => 'X') when others;
 
-display: SSD port map(digits => digits, clk => clk, cat => cat, an => an);
+--display: SSD port map(digits => digits, clk => clk, cat => cat, an => an);
+display: SSD_pali port map(clk => clk, palindrome => isPali ,cat => cat, an => an);
 end Behavioral;
