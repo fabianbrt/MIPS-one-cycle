@@ -63,11 +63,14 @@ writeEn <= en and MemWrite;
 process(clk)
     begin 
         if rising_edge(clk) and writeEn = '1' then
+            isPalindrome <= rd2;
             ram(to_integer(unsigned(ALUresIN(31 downto 2)))) <= rd2;
         end if;
 end process;
 
 MemData <= ram(to_integer(unsigned(ALUresIN(31 downto 2))));
 ALUresOUt <= ALUresIN;
-isPalindrome <= ram(to_integer(unsigned(ram(0) + 1))); -- PALINDROME CHECK,  ram(6)?
+
+--isPalindrome <= ram(6);
+--isPalindrome <= ram(to_integer(unsigned(ram(0) + 1))); -- PALINDROME CHECK -- ram(6)
 end Behavioral;
