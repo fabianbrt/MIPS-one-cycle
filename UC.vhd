@@ -36,7 +36,8 @@ entity UC is
            RegDst : out STD_LOGIC;
            ExtOp : out STD_LOGIC;
            ALUSrc : out STD_LOGIC;
-           Branch : out STD_LOGIC;
+           BranchEQ: out STD_LOGIC;
+           BranchNEQ: out STD_LOGIC;
            Jump : out STD_LOGIC;
            ALUOp : out STD_LOGIC_VECTOR (2 downto 0);
            MemWrite : out STD_LOGIC;
@@ -53,7 +54,8 @@ process(op_code)
        RegDst <= '0';
        ExtOp <= '0';
        ALUSrc <= '0';
-       Branch <= '0';
+       BranchEQ <= '0';
+       BranchNEQ <= '0';
        Jump <= '0';
        ALUOp <= (others => '0');
        MemWrite <= '0';
@@ -73,9 +75,15 @@ process(op_code)
             ALUSrc <= '1';
             RegWrite <= '1';
             ALUOp <= "001";
+        -- BNE
         when "000101" =>
-             ALUSrc <= '0'; -- ALUsrc <= '1' incorrect => has to compare two registers
-            Branch <= '1';
+            ALUSrc <= '0'; -- ALUsrc <= '0' has to compare two registers
+            BranchNEQ <= '1';
+            ALUOp <= "010";
+        --BEQ
+         when "000100" =>
+            ALUSrc <= '0'; -- ALUsrc <= '0' has to compare two registers
+            BranchEQ <= '1';
             ALUOp <= "010";
         when "101011" =>
             ALUSrc <= '1';
@@ -83,7 +91,7 @@ process(op_code)
             ALUOp <= "001";
         when "000010" =>
             Jump <= '1';
-        when others => MemWrite <= '0';
+        when others => -- NO OP
    end case;
 end process;
 
