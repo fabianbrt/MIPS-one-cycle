@@ -38,8 +38,8 @@ entity ID is
     RD1: out std_logic_vector(31 downto 0);
     RD2: out std_logic_vector(31 downto 0);
     Ext_Imm: out std_logic_vector(31 downto 0);
-    func: out std_logic_vector(31 downto 0);
-    sa: out std_logic_vector(31 downto 0)
+    func: out std_logic_vector(5 downto 0);
+    sa: out std_logic_vector(4 downto 0)
     );
 end ID;
 
@@ -73,7 +73,7 @@ rd2 <= rf(to_integer(unsigned(r_addr2)));
 ext_imm(15 downto 0) <= instruction(15 downto 0);
 ext_imm(31 downto 16) <= (others => instruction(15)) when extop = '1' else (others => '0');
 
-func <= x"0000000" & instruction(5 downto 0);
-sa <= x"0000000" & instruction(10 downto 6);
+func <= instruction(5 downto 0);
+sa <= instruction(10 downto 6);
 
 end Behavioral;
