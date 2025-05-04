@@ -63,37 +63,40 @@ begin
         case AluOP is
             when "000" => 
                 case func is
-                    -- maybe ADD?
+                -- ADD ??
                     when "000010" => ALUCtrl <= "010"; --SRL  
                     when "100010" => ALUCtrl <= "001"; --SUB
-                    when others => ALUCtrl <= (others => 'X');
+                    when others => ALUCtrl <= "000"; --default
                  end case;
             when "001" => ALUCtrl <= "000";  -- +
             when "010" => ALUCtrl <= "001";  -- -
-            when others => ALUCtrl <= (others => 'X');
+            when others => ALUCtrl <= (others => '0');
         end case;
    end process;   
    
 --ALU
 process(ALUCtrl, RD1, ALUin2, sa)
-variable shift_amt: integer;
     begin
-        shift_amt := to_integer(unsigned(sa));
         case ALUctrl is
             when "000" => result <= std_logic_vector(unsigned(RD1) + unsigned(ALUin2)); -- ADD
             when "001" => result <= std_logic_vector(unsigned(RD1) - unsigned(ALUin2)); -- SUB
-            when "010" => result <= std_logic_vector(shift_right(unsigned(ALUin2), shift_amt)); --SRL
-            when others => result <= (others => 'X');
+            when "010" => 
+                 if unsigned(sa) = 1 then
+                result <= "0" & ALUin2(31 downto 1); -- SRL
+            else
+                result <= ALUin2; 
+            end if;
+            when others => result <= (others => '0');
         end case;
 end process;
 
 --Branch Address
-BranchAddr <= std_logic_vector(unsigned(PCnext) + unsigned(Ext_Imm(29 downto 0) & "00")); -- signed for ext_imm + sll 2?
+BranchAddr <= std_logic_vector(signed(PCnext) + signed(Ext_Imm(29 downto 0) & "00")); -- maybe signed sll 2
 
 ALUres <= result;
 
 --Zero flag
-Zero <= '1' when result = (others => '0') else '0';
+Zero <= '1' when result = (result'range => '0') else '0';
 
     
 end Behavioral;
