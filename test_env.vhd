@@ -42,8 +42,8 @@ component IFETCH
            en : in std_logic;
            jumpAddr : in STD_LOGIC_VECTOR (31 downto 0);
            branchAddr : in STD_LOGIC_VECTOR (31 downto 0);
-           swJmp : in STD_LOGIC;
-           swBr : in STD_LOGIC;
+           Jump : in STD_LOGIC;
+           PCsrc : in STD_LOGIC;
            Instruction : out STD_LOGIC_VECTOR(31 downto 0);
            PCinc : out STD_LOGIC_VECTOR(31 downto 0));
 end component;
@@ -56,7 +56,7 @@ component UC is
            BranchEQ : out STD_LOGIC;
            BranchNEQ : out STD_LOGIC;
            Jump : out STD_LOGIC;
-           ALUOp : out STD_LOGIC_VECTOR (1 downto 0);
+           ALUOp : out STD_LOGIC_VECTOR (2 downto 0);
            MemWrite : out STD_LOGIC;
            MemtoReg : out STD_LOGIC;
            RegWrite : out STD_LOGIC);
@@ -73,8 +73,8 @@ component ID is
     RD1: out std_logic_vector(31 downto 0);
     RD2: out std_logic_vector(31 downto 0);
     Ext_Imm: out std_logic_vector(31 downto 0);
-    func: out std_logic_vector(31 downto 0);
-    sa: out std_logic_vector(31 downto 0)
+    func: out std_logic_vector(5 downto 0);
+    sa: out std_logic_vector(4 downto 0)
     );
 end component;
 
@@ -82,7 +82,7 @@ component EX is
     Port ( RD1 : in STD_LOGIC_VECTOR (31 downto 0);
            RD2 : in STD_LOGIC_VECTOR (31 downto 0);
            Ext_Imm : in STD_LOGIC_VECTOR (31 downto 0);
-           sa : in STD_LOGIC_VECTOR (5 downto 0);
+           sa : in STD_LOGIC_VECTOR (4 downto 0);
            func : in STD_LOGIC_VECTOR (5 downto 0);
            PCnext : in STD_LOGIC_VECTOR (31 downto 0);
            AluSrc : in STD_LOGIC;
@@ -162,8 +162,8 @@ with sw(4 downto 0) select
            isPali when "01000",
            (others => 'X') when others;
 
---display: SSD port map(digits => digits, clk => clk, cat => cat, an => an);
+display: SSD port map(digits => digits, clk => clk, cat => cat, an => an);
 led <= Zero & Jump & BranchEQ & BranchNEQ & MemWrite & RegWrite & MemtoReg & ALUSrc & RegDst;
 
-display: SSD_pali port map(clk => clk, palindrome => isPali ,cat => cat, an => an);
+--display: SSD_pali port map(clk => clk, palindrome => isPali ,cat => cat, an => an);
 end Behavioral;
