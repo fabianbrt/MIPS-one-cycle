@@ -36,7 +36,7 @@ entity EX is
     Port ( RD1 : in STD_LOGIC_VECTOR (31 downto 0);
            RD2 : in STD_LOGIC_VECTOR (31 downto 0);
            Ext_Imm : in STD_LOGIC_VECTOR (31 downto 0);
-           sa : in STD_LOGIC_VECTOR (5 downto 0);
+           sa : in STD_LOGIC_VECTOR (4 downto 0);
            func : in STD_LOGIC_VECTOR (5 downto 0);
            PCnext : in STD_LOGIC_VECTOR (31 downto 0);
            AluSrc : in STD_LOGIC;
