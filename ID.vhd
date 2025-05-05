@@ -32,6 +32,7 @@ entity ID is
     Instruction: in std_logic_vector(31 downto 0);
     WD: in std_logic_vector(31 downto 0);
     btn_en: in std_logic;
+    rst: in std_logic;
     RegWrite: in std_logic;
     RegDst: in std_logic;
     ExtOp: in std_logic;
@@ -61,8 +62,13 @@ r_addr2 <= instruction(20 downto 16);
 --WRITE
 process(clk)
   begin
-    if rising_edge(clk) and w_en = '1' then
-        rf(to_integer(unsigned(w_addr))) <= wd;
+    if rising_edge(clk) then
+        if w_en = '1' then
+            rf(to_integer(unsigned(w_addr))) <= wd;
+        end if;
+        if rst = '1' then
+            rf <= (others => X"00000000");
+        end if;
     end if;
 end process;
 
