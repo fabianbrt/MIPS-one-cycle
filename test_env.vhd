@@ -148,7 +148,7 @@ instr_MEM: MEM port map(clk, ALUresIN, RD2, MemWrite, en, MemData, ALUresOUT, is
 
 WriteData <= MemData when MemToReg = '1' else ALUresOUT;
 PCsrc <= (BranchEQ and Zero) or (BranchNEQ and not Zero);
-JumpAddr <= PCinc(31 downto 28) & Instruction(25 downto 0) & "00";
+JumpAddr <= "0000" & Instruction(25 downto 0) & "00";
 
 with sw(4 downto 0) select
  digits <= Instruction when "00000",
@@ -162,8 +162,8 @@ with sw(4 downto 0) select
            isPali when "01000",
            (others => 'X') when others;
 
-display: SSD port map(digits => digits, clk => clk, cat => cat, an => an);
+--display: SSD port map(digits => digits, clk => clk, cat => cat, an => an);
 led <= Zero & Jump & BranchEQ & BranchNEQ & MemWrite & RegWrite & MemtoReg & ALUSrc & RegDst;
 
---display: SSD_pali port map(clk => clk, palindrome => isPali ,cat => cat, an => an);
+display: SSD_pali port map(clk => clk, palindrome => isPali ,cat => cat, an => an);
 end Behavioral;
