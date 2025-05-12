@@ -3,16 +3,16 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity SSD_palindrome_32bit is
+entity SSD_pali is
     Port ( clk : in std_logic;
            palindrome : in std_logic_vector(31 downto 0);
            cat : out std_logic_vector(6 downto 0);
            an : out std_logic_vector(7 downto 0));
-end SSD_palindrome_32bit;
+end SSD_pali;
 
-architecture Behavioral of SSD_palindrome_32bit is
+architecture Behavioral of SSD_pali is
 
-signal cnt : std_logic_vector(17 downto 0) := (others => '0'); -- multiplexare
+signal cnt : std_logic_vector(17 downto 0) := (others => '0'); 
 signal sel : std_logic_vector(2 downto 0);
 signal letter : std_logic_vector(3 downto 0);
 signal cat_out : std_logic_vector(6 downto 0);
@@ -61,17 +61,18 @@ end process;
 process(letter)
 begin
     case letter is
-        when "0000" => cat_out <= "0001100"; -- P
+        when "0000" => cat_out <= "0001110"; -- P
         when "0001" => cat_out <= "0001000"; -- A
         when "0010" => cat_out <= "1000111"; -- L
-        when "0011" => cat_out <= "1111001"; -- I
-        when "1000" => cat_out <= "0010000"; -- N
-        when "1001" => cat_out <= "0000110"; -- O
-        when "1010" => cat_out <= "0001110"; -- T
-        when "1111" => cat_out <= "1111111"; 
+        when "0011" => cat_out <= "1111001"; -- I 
+        when "1000" => cat_out <= "0010101"; -- N 
+        when "1001" => cat_out <= "0000001"; -- O
+        when "1010" => cat_out <= "1110000"; -- T
+        when "1111" => cat_out <= "1111111"; -- blank
         when others => cat_out <= "1111111";
     end case;
 end process;
+
 
 
 process(sel)
