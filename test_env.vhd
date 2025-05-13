@@ -4,12 +4,12 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity test_env is
-  Port (clk : in STD_LOGIC;
+   Port (clk : in STD_LOGIC;
         btn : in STD_LOGIC_VECTOR (4 downto 0);
-        sw : in STD_LOGIC_VECTOR (4 downto 0); 
-        an : out STD_LOGIC_VECTOR (7 downto 0);
+        sw : in STD_LOGIC_VECTOR (7 downto 0); 
+        an : out STD_LOGIC_VECTOR (3 downto 0);
         cat : out STD_LOGIC_VECTOR (6 downto 0);
-        led : out STD_LOGIC_VECTOR (8 downto 0)); 
+        led : out STD_LOGIC_VECTOR (8 downto 0));   
 end test_env;
 
 architecture Behavioral of test_env is
@@ -26,14 +26,16 @@ component SSD
     Port ( digits : in STD_LOGIC_VECTOR (31 downto 0);
            clk : in STD_LOGIC;
            cat : out STD_LOGIC_VECTOR (6 downto 0);
-           an : out STD_LOGIC_VECTOR (7 downto 0));
+           an : out STD_LOGIC_VECTOR (3 downto 0));
 end component;
 
 component SSD_pali
-    Port ( clk : in STD_LOGIC;
-           palindrome : in STD_LOGIC_VECTOR (31 downto 0);
-           cat : out STD_LOGIC_VECTOR (6 downto 0);
-           an : out STD_LOGIC_VECTOR (7 downto 0));
+      Port (clk: in std_logic;
+        message: in std_logic_vector(15 downto 0);
+        cat: out std_logic_vector(6 downto 0);
+        an: out std_logic_vector(3 downto 0)
+        );
+        
 end component;
 
 component IFETCH
@@ -133,6 +135,7 @@ signal ALUresIN: std_logic_vector(31 downto 0) := (others => '0');
 signal ALUresOUT: std_logic_vector(31 downto 0) := (others => '0');
 signal MemData: std_logic_vector(31 downto 0) := (others => '0');
 signal isPali: std_logic_vector(31 downto 0) := (others => '0');
+signal message: std_logic_vector(15 downto 0) := (others => '0');
 
 
 begin
@@ -162,8 +165,9 @@ with sw(4 downto 0) select
            isPali when "01000",
            (others => 'X') when others;
 
---display: SSD port map(digits => digits, clk => clk, cat => cat, an => an);
+message <= x"0123" when unsigned(isPali) = 1 else x"4567";
+display: SSD port map(digits => digits, clk => clk, cat => cat, an => an);
 led <= Zero & Jump & BranchEQ & BranchNEQ & MemWrite & RegWrite & MemtoReg & ALUSrc & RegDst;
 
-display: SSD_pali port map(clk => clk, palindrome => isPali ,cat => cat, an => an);
+--display: SSD_pali port map(message => message, clk => clk, cat => cat, an => an);
 end Behavioral;
