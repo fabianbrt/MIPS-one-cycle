@@ -46,6 +46,7 @@ end MEM;
 architecture Behavioral of MEM is
 
 type ram_type is array(0 to 63) of std_logic_vector(31 downto 0);
+-- Palindrome case
 signal ram: ram_type := (
     0 => x"00000005", -- no_digits = 5
     1 => x"00000001",
